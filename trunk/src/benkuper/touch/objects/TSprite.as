@@ -112,6 +112,9 @@
 						initMovable();
 					}
 					
+					trace("cursorX: " + e.cursorInfo.cursorX);
+					trace("cursorY: " + e.cursorInfo.cursorY);
+					
 				break;
 				
 				case TCursorEvent.CURSOR_IN:
@@ -188,7 +191,7 @@
 				
 			}else if (tapTimer != null && (eventType == TCursorEvent.CURSOR_OUT || eventType == TCursorEvent.CURSOR_UP)) {
 				
-				//trace("tap !");
+				trace("tap !");
 				
 				dispatchEvent(new TouchEvent(TouchEvent.TAP,true));
 				
@@ -263,18 +266,22 @@
 		private function initTransform():void{
 			
 			
+			var baseCursor:TCursorInfo = _cursorArray[0] as TCursorInfo;
+			var moveCursor:TCursorInfo = _cursorArray[1] as TCursorInfo;
+			
 			//Initialisation of init* params
 			initScale = this.scaleX;
+			
 			initRot = this.rotation;
+			
+			if(moveCursor.cursorX < baseCursor.cursorX){
+				initRot += 180;
+			}
 			
 			for (var i:String in _cursorArray) {
 				TCursorInfo(_cursorArray[i]).cursorInitX = TCursorInfo(_cursorArray[i]).cursorX;
 				TCursorInfo(_cursorArray[i]).cursorInitY = TCursorInfo(_cursorArray[i]).cursorY;
 			}
-			
-			
-			
-			
 			
 		}
 
@@ -300,6 +307,23 @@
 			}
 			
 			
+			var compensateX:Number = 0;
+			var compensateY:Number = 0;
+			var targetParent:DisplayObject = this.parent;
+			
+			while (targetParent != null) {
+				compensateX += targetParent.x;
+				compensateY += targetParent.y;
+				targetParent = targetParent.parent;
+			}
+			
+			targetProps.point.x -= compensateX;
+			targetProps.point.y -= compensateY;
+			
+			//TEST FOR SIMPLER PARENT-CHILD DECAL COMPENSATION
+			//trace((this.parent.x + this.parent.parent.x) + " <-> " + this.parent.localToGlobal(new Point(this.parent.x, this.parent.y)).x);
+			
+			
 			var targetX:Number = baseCursor.cursorX - this.initDiffX;
 			var targetY:Number = baseCursor.cursorY - this.initDiffY;
 			
@@ -323,7 +347,7 @@
 				
 				
 				if(moveCursor.cursorX < baseCursor.cursorX){
-					targetRot = 180+targetRot;
+					targetRot += 180;
 				}	
 				
 				targetRot -= baseRot;
