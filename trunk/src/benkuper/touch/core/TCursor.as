@@ -123,7 +123,7 @@
 		}
 		
 		private function isObjectOver(tObject:ITObject,tx:Number,ty:Number):Boolean {
-			return DisplayObject(tObject).hitTestPoint(tx, ty);
+			return DisplayObject(tObject).hitTestPoint(tx, ty,true);
 			
 		}
 		
