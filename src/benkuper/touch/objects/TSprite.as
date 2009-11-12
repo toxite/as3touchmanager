@@ -39,6 +39,7 @@
 		private var initRot:Number;
 		
 		
+		
 		//Functionnalities [read-write]
 		private var _movable:Boolean;
 		private var _scalable:Boolean;
@@ -49,8 +50,10 @@
 		private var tapTimer:Timer;
 		private var doubleTapTimer:Timer;
 		
-		//**TO IMPLEMENT***  Chooser whether the sprite is center under the finger, or if the sprite stays in place for interactions.
-		private var _lockToCenter:Boolean
+		
+		//Controls
+		protected var minScale:Number;
+		protected var maxScale:Number;
 		
 		
 		public function TSprite() 
@@ -68,6 +71,8 @@
 			addEventListener(TCursorEvent.CURSOR_OUT, handleCursor);
 			addEventListener(TCursorEvent.CURSOR_MOVE, handleCursor);
 			
+			
+		
 		}
 		
 		
@@ -112,8 +117,8 @@
 						initMovable();
 					}
 					
-					trace("cursorX: " + e.cursorInfo.cursorX);
-					trace("cursorY: " + e.cursorInfo.cursorY);
+					//trace("cursorX: " + e.cursorInfo.cursorX);
+					//trace("cursorY: " + e.cursorInfo.cursorY);
 					
 				break;
 				
@@ -174,7 +179,7 @@
 			
 			var targetFilter:Object = new Object;
 			if (doHighlight) {
-				targetFilter.brightness = 2;
+				targetFilter.brightness = 1.5;
 			}
 			
 			TweenLite.to(this, .2, { colorMatrixFilter:targetFilter} );
@@ -519,7 +524,32 @@
 		
 		
 		
+		override public function set scaleX(value:Number):void {
+			
+			
+			if(!isNaN(minScale) && value < minScale ) {
+				value = minScale;
+			}else if (!isNaN(maxScale) && value > maxScale) {
+				value = maxScale;
+			}
+			
+			super.scaleX = value;
+			
+			
+		}
 		
+		
+		override public function set scaleY(value:Number):void {
+			
+			if(!isNaN(minScale) && value < minScale ) {
+				value = minScale;
+			}else if (!isNaN(maxScale) && value > maxScale) {
+				value = maxScale;
+			}
+			
+			super.scaleY = value;
+			
+		}
 		
 	}
 
