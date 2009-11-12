@@ -317,12 +317,8 @@
 			targetProps.point.x -= compensateX;
 			targetProps.point.y -= compensateY;
 			
-			//TODO : PARENT-CHILD ROTATION COMPENSATION
+			//TODO : PARENT-CHILD ROTATION & SCALE COMPENSATION
 			
-			
-			
-			var targetX:Number = baseCursor.cursorX - this.initDiffX;
-			var targetY:Number = baseCursor.cursorY - this.initDiffY;
 			
 			if(_scalable){
 				
