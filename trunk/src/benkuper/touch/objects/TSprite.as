@@ -239,9 +239,11 @@
 		{
 			
 			//Initialisation of init* params
-			initDiffX = getCursorsMiddle(true).x - this.x;
-			initDiffY = getCursorsMiddle(true).y - this.y;
+			//var thisPoint:Point = parent.localToGlobal(new Point(this.x,this.y);
+			initDiffX = parent.globalToLocal(getCursorsMiddle(true)).x - this.x;
+			initDiffY = parent.globalToLocal(getCursorsMiddle(true)).y - this.y;
 			
+			trace(initDiffX);
 		}
 		
 		protected function handleMove():void
@@ -253,10 +255,11 @@
 			//var targetX:Number = getCursorsMiddle().x - this.initDiffX;
 			//var targetY:Number = getCursorsMiddle().y - this.initDiffY;
 			
+			var targetCursorPoint:Point = parent.globalToLocal(new Point(baseCursor.cursorX,baseCursor.cursorY ));
+			var targetX:Number = targetCursorPoint.x - initDiffX;
+			var targetY:Number = targetCursorPoint.y - initDiffY;
 			
-			var targetX:Number = baseCursor.cursorX - this.initDiffX;
-			var targetY:Number = baseCursor.cursorY - this.initDiffY;
-			
+			trace(targetX);
 			
 			//TweenLite.to(this, .1, { x:targetX, y:targetY, ease:Strong.easeOut } );
 			
@@ -312,21 +315,16 @@
 			}
 			
 			
-			var compensateX:Number = 0;
-			var compensateY:Number = 0;
-			var targetParent:DisplayObject = this.parent;
+			var compensateX:Number = this.parent.localToGlobal(new Point(0, 0)).x;
+			var compensateY:Number = this.parent.localToGlobal(new Point(0, 0)).y;
 			
-			while (targetParent != null) {
-				compensateX += targetParent.x;
-				compensateY += targetParent.y;
-				targetParent = targetParent.parent;
-			}
+
 			
 			targetProps.point.x -= compensateX;
 			targetProps.point.y -= compensateY;
 			
-			//TEST FOR SIMPLER PARENT-CHILD DECAL COMPENSATION
-			//trace((this.parent.x + this.parent.parent.x) + " <-> " + this.parent.localToGlobal(new Point(this.parent.x, this.parent.y)).x);
+			//TODO : PARENT-CHILD ROTATION COMPENSATION
+			
 			
 			
 			var targetX:Number = baseCursor.cursorX - this.initDiffX;
