@@ -239,11 +239,9 @@
 		{
 			
 			//Initialisation of init* params
-			//var thisPoint:Point = parent.localToGlobal(new Point(this.x,this.y);
 			initDiffX = parent.globalToLocal(getCursorsMiddle(true)).x - this.x;
 			initDiffY = parent.globalToLocal(getCursorsMiddle(true)).y - this.y;
 			
-			trace(initDiffX);
 		}
 		
 		protected function handleMove():void
@@ -252,14 +250,11 @@
 			//trace("handleMove");
 			var baseCursor:TCursorInfo = _cursorArray[0] as TCursorInfo;
 			
-			//var targetX:Number = getCursorsMiddle().x - this.initDiffX;
-			//var targetY:Number = getCursorsMiddle().y - this.initDiffY;
 			
 			var targetCursorPoint:Point = parent.globalToLocal(new Point(baseCursor.cursorX,baseCursor.cursorY ));
 			var targetX:Number = targetCursorPoint.x - initDiffX;
 			var targetY:Number = targetCursorPoint.y - initDiffY;
 			
-			trace(targetX);
 			
 			//TweenLite.to(this, .1, { x:targetX, y:targetY, ease:Strong.easeOut } );
 			
@@ -306,7 +301,6 @@
 			
 			var targetProps:Object = new Object();
 			
-			//targetProps.point = new Point(baseCursor.cursorInitX,baseCursor.cursorInitY);
 			
 			if (baseCursor == basePointInfo) {
 				targetProps.point = new Point(moveCursor.cursorX,moveCursor.cursorY);
