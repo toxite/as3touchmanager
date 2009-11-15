@@ -33,6 +33,10 @@
 		private var cursorInfo:TCursorInfo;
 		
 		
+		private var deltaX:Number;
+		private var deltaY:Number;
+		
+		
 		public function TCursor(cID:int){
 			
 			id = cID;
@@ -52,6 +56,9 @@
 			
 			//trace("TCursor update,mode="+cursorMode);
 			
+			
+				
+			 
 			if (this.x == 0) {
 				
 				checkFirst(tx,ty);
@@ -77,10 +84,14 @@
 					cursorInfo.cursorX = tx;
 					cursorInfo.cursorY = ty;
 					
-					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo , targetObject, tx - this.x, ty - this.y));
+					deltaX = tx - this.x;
+					deltaY = ty - this.y;
+					
+					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));
 				}
 				
 			}
+			
 			
 			
 			this.x = tx;
@@ -94,6 +105,7 @@
 		private function checkFirst(tx:Number,ty:Number):Boolean {
 			
 			var curObject:ITObject;
+			
 			
 			for (var i:String in TManager.objectList) {
 				
@@ -134,7 +146,7 @@
 			
 			if (targetObject != null) {
 				
-				targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_UP, new TCursorInfo(this.id,this.x,this.y),  targetObject));
+				targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_UP, new TCursorInfo(this.id,this.x,this.y),  targetObject,deltaX,deltaY));
 				targetObject = null;
 				
 			}
