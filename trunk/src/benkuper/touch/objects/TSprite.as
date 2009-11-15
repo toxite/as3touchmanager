@@ -26,7 +26,7 @@
 		private var _numCursors:int;
 		
 		//Max cursors that can interact with the sprite, based on functionnality (movable = 1, scalable/rotatable = 2) [read-only]
-		private var maxCursors:int;
+		protected var maxCursors:int;
 		
 		//temp var for cursor removal filterCursor function
 		private var _tmpCursorID:int;
@@ -46,6 +46,9 @@
 		private var _rotatable:Boolean;
 		private var _tapable:Boolean;
 		
+		private var _softMove:Boolean;
+		private var _softRelease:Boolean;
+		
 		//Timer for tap detection
 		private var tapTimer:Timer;
 		private var doubleTapTimer:Timer;
@@ -56,13 +59,14 @@
 		protected var maxScale:Number;
 		
 		
+		
+		
 		public function TSprite() 
 		{
 			super();
 			_cursorArray = new Array();
 			
 			maxCursors = 0;
-			
 			_numCursors = 0;
 			
 			addEventListener(TCursorEvent.CURSOR_OVER, handleCursor);
@@ -72,19 +76,22 @@
 			addEventListener(TCursorEvent.CURSOR_MOVE, handleCursor);
 			
 			
-		
+			
 		}
 		
 		
 		private function handleCursor(e:TCursorEvent):void 
 		{
 			
+			
+			
+			
 			switch (e.type) {
 				case TCursorEvent.CURSOR_OVER:
 					
 					addCursor(e.cursorInfo);
 					
-					highlight(true);
+					
 					
 					
 					if (_movable) initMovable();
@@ -93,9 +100,14 @@
 					
 					if (numCursors == 2) {
 						if (_scalable || _rotatable) initTransform();
-					}else if (numCursors == 1 && tapable) {
-						initTapable(e.type);
+					}else if (numCursors == 1) {
+						highlight(true);
+						
+						if(tapable) {
+							initTapable(e.type);
+						}
 					}
+					
 					
 					
 					
@@ -109,12 +121,25 @@
 					if(_numCursors == 0){
 						highlight(false);
 						
-						if(tapable){
+						
+						if (movable && softRelease && Math.abs(e.deltaX + e.deltaY) > .8) {
+							
+							var globalCoords:Point = parent.localToGlobal(new Point(this.x, this.y));
+							globalCoords.x += e.deltaX * 10;
+							globalCoords.y += e.deltaY * 10;
+							
+							var localTarget:Point = parent.globalToLocal(globalCoords);
+							
+							//trace(e.deltaX+ e.deltaY);
+							
+							TweenLite.to(this, .7, { x:localTarget.x, y:localTarget.y, ease:Strong.easeOut } );
+							
+						}else if(tapable){
 							initTapable(e.type);
 						}
 						
 					}else if (_numCursors == 1) {
-						initMovable();
+						if(movable)	initMovable();
 					}
 					
 					//trace("cursorX: " + e.cursorInfo.cursorX);
@@ -129,6 +154,7 @@
 						addCursor(e.cursorInfo);
 						
 						if (_numCursors == 1) {
+							
 							highlight(true);
 						}
 					}
@@ -139,15 +165,18 @@
 				case TCursorEvent.CURSOR_OUT:
 					
 					if (!(_movable || _scalable || _rotatable)) {
-						trace("cursorOut");
+						//trace("cursorOut");
 						removeCursor(e.cursorInfo);
 						
 						
 						if (_numCursors < 0) {
 							highlight(false);
+							
+							
 						}
 						
 					}
+					
 					
 					
 				break;
@@ -164,6 +193,7 @@
 						if (_movable) handleMove();
 					}
 					
+					//trace(e.deltaX+ e.deltaY);
 					
 				break;
 			}
@@ -196,7 +226,7 @@
 				
 			}else if (tapTimer != null && (eventType == TCursorEvent.CURSOR_OUT || eventType == TCursorEvent.CURSOR_UP)) {
 				
-				trace("tap !");
+				//trace("tap !");
 				
 				dispatchEvent(new TouchEvent(TouchEvent.TAP,true));
 				
@@ -238,9 +268,16 @@
 		private function initMovable():void
 		{
 			
+			
+			
+			TweenLite.killTweensOf(this);
+			
+							
 			//Initialisation of init* params
-			initDiffX = parent.globalToLocal(getCursorsMiddle(true)).x - this.x;
-			initDiffY = parent.globalToLocal(getCursorsMiddle(true)).y - this.y;
+			var baseCursor:TCursorInfo = _cursorArray[0] as TCursorInfo;
+			var basePoint:Point = parent.globalToLocal(new Point(baseCursor.cursorX, baseCursor.cursorY ));
+			initDiffX = basePoint.x - this.x;
+			initDiffY = basePoint.y - this.y;
 			
 		}
 		
@@ -256,10 +293,14 @@
 			var targetY:Number = targetCursorPoint.y - initDiffY;
 			
 			
-			//TweenLite.to(this, .1, { x:targetX, y:targetY, ease:Strong.easeOut } );
+			if(softMove){
+				TweenLite.to(this, .2, { x:targetX, y:targetY, ease:Strong.easeOut } );
+			}else {
+				this.x = targetX;
+				this.y = targetY;
+			}
 			
-			this.x = targetX;
-			this.y = targetY;
+			
 			
 			
 		}
@@ -425,24 +466,6 @@
 		}
 		
 		
-		private function getCursorsMiddle(initValues:Boolean = false):Point {
-			
-			var middleCursorsX:Number = 0;
-			var middleCursorsY:Number = 0;
-			
-			for (var i:String in _cursorArray) {
-				
-				middleCursorsX += (!initValues)?TCursorInfo(_cursorArray[i]).cursorX:TCursorInfo(_cursorArray[i]).cursorInitX;
-				middleCursorsY += (!initValues)?TCursorInfo(_cursorArray[i]).cursorY:TCursorInfo(_cursorArray[i]).cursorInitY;
-				
-			}
-			
-			middleCursorsX /= cursorArray.length;
-			middleCursorsY /= cursorArray.length;
-			
-			return new Point(middleCursorsX, middleCursorsY);
-		}
-		
 		
 		public function get scalable():Boolean { return _scalable; }
 		
@@ -537,6 +560,20 @@
 			
 			super.scaleY = value;
 			
+		}
+		
+		public function get softMove():Boolean { return _softMove; }
+		
+		public function set softMove(value:Boolean):void 
+		{
+			_softMove = value;
+		}
+		
+		public function get softRelease():Boolean { return _softRelease; }
+		
+		public function set softRelease(value:Boolean):void 
+		{
+			_softRelease = value;
 		}
 		
 	}

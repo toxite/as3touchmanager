@@ -153,7 +153,7 @@
 		}
 		
 		private function addCursor(e:TParserEvent){
-			trace("new Cursor, cursorID="+e.cursorID)
+			//trace("new Cursor, cursorID="+e.cursorID)
 			
 			cursorList[e.cursorID] = {index:e.cursorID,relatedTCursor:new TCursor(e.cursorID)};
 			container.addChild(cursorList[e.cursorID].relatedTCursor);
