@@ -35,6 +35,7 @@
 				
 				curMessageNode = xml.children()[i];
 				
+				
 
 				if(curMessageNode.children()[0].attribute("value") == "set"){
 							

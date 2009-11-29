@@ -2,6 +2,7 @@
 	
 	import benkuper.touch.objects.ITObject;
 	import flash.display.DisplayObject;
+	import flash.display.Screen;
 	import flash.display.Sprite;
 	import flash.display.MovieClip;
 	import flash.display.Stage;
@@ -25,10 +26,13 @@
 	{
 		
 		
-		
+		private var targetScreen:int;
 		
 		private var screenW:int;
 		private var screenH:int;
+		
+		private var decalageX:int;
+		private var decalageY:int;
 		
 		
 		//List of current fingers on table
@@ -55,7 +59,7 @@
 		private var container:Sprite;
 		
 		
-		public function TManager(){
+		public function TManager(targetScreen:int = 0){
 			
 			//for tweening
 			OverwriteManager.init();
@@ -67,7 +71,7 @@
 			
 			instance = this;
 			
-			
+			this.targetScreen = targetScreen;
 			//TCursor.mode = "keyboard";
 			
 			tParser = new TParser();
@@ -98,8 +102,16 @@
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
-			screenW = stage.stageWidth;
-			screenH = stage.stageHeight;
+			//screenW = stage.stageWidth;
+			//screenH = stage.stageHeight;
+			
+			screenW = int(Screen.screens[targetScreen].bounds.width);
+			screenH = int(Screen.screens[targetScreen].bounds.height);
+			
+			decalageX = int(Screen.screens[targetScreen].bounds.x) - stage.nativeWindow.x;
+			decalageY = int(Screen.screens[targetScreen].bounds.y)  - stage.nativeWindow.y;
+			//trace(screenW,screenH);
+			
 		}
 		
 		
@@ -154,7 +166,7 @@
 		
 		private function addCursor(e:TParserEvent){
 			//trace("new Cursor, cursorID="+e.cursorID)
-			
+			//trace("addCursor : ", e.cursorID);
 			cursorList[e.cursorID] = {index:e.cursorID,relatedTCursor:new TCursor(e.cursorID)};
 			container.addChild(cursorList[e.cursorID].relatedTCursor);
 			
@@ -178,7 +190,11 @@
 		
 		private function updateCursor(e:TParserEvent){
 			
-			cursorList[e.cursorID].relatedTCursor.update(((e.newX * factorX + 1) % 1) * screenW,((e.newY * factorY + 1) % 1) * screenH);
+			//trace("update Cursor : "+e.cursorID, cursorList[e.cursorID]);
+			
+			if(cursorList[e.cursorID] != undefined){
+				cursorList[e.cursorID].relatedTCursor.update(((e.newX * factorX + 1) % 1) * screenW + decalageX, ((e.newY * factorY + 1) % 1) * screenH + decalageY);
+			}
 			
 			
 		}

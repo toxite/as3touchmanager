@@ -32,6 +32,7 @@
 		
 		private var cursorInfo:TCursorInfo;
 		
+		private var dispatchMoveWhileOut:Boolean;
 		
 		private var deltaX:Number;
 		private var deltaY:Number;
@@ -47,6 +48,8 @@
 			graphics.drawCircle(0, 0, 5);
 			graphics.endFill();
 			
+			
+			dispatchMoveWhileOut = true;
 			
 		}
 		
@@ -65,6 +68,12 @@
 				
 			}else if (targetObject != null) {
 				
+				cursorInfo.cursorX = tx;
+				cursorInfo.cursorY = ty;
+				
+				deltaX = tx - this.x;
+				deltaY = ty - this.y;
+				
 				if (!isObjectOver(targetObject,tx,ty)) {
 					
 					if(cursorInfo.state == "in"){
@@ -72,23 +81,21 @@
 						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_OUT, cursorInfo , targetObject));
 					}
 					
-					//targetObject = null;
+					if(dispatchMoveWhileOut){
+						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject, deltaX, deltaY));
+					}
 					
 				}else {
+					
+					
 					
 					if (cursorInfo.state == "out") {
 						cursorInfo.state = "in";
 						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_IN, cursorInfo , targetObject));
 					}
 					
-					cursorInfo.cursorX = tx;
-					cursorInfo.cursorY = ty;
 					
-					deltaX = tx - this.x;
-					deltaY = ty - this.y;
-					
-					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));
-				}
+					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));				}
 				
 			}
 			
