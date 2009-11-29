@@ -20,7 +20,7 @@
 	{
 		
 		//Array of cursors that interact with the sprite
-		private var _cursorArray:Array;
+		protected var _cursorArray:Array;
 		
 		//Basically length of the cursorArray, to know how manu cursors are handled by the sprite [read-only]
 		private var _numCursors:int;
@@ -49,14 +49,20 @@
 		private var _softMove:Boolean;
 		private var _softRelease:Boolean;
 		
+		private var softReleaseFactor:Number;
+		
+		private var tapTolerance:Number;
+		private var doubleTapTolerance:Number;
+		
 		//Timer for tap detection
 		private var tapTimer:Timer;
 		private var doubleTapTimer:Timer;
 		
 		
 		//Controls
-		protected var minScale:Number;
-		protected var maxScale:Number;
+		private var _minScale:Number;
+		private var _maxScale:Number;
+		
 		
 		
 		
@@ -68,6 +74,11 @@
 			
 			maxCursors = 0;
 			_numCursors = 0;
+			
+			tapTolerance = 230;
+			doubleTapTolerance = 450;
+			
+			softReleaseFactor = 5;
 			
 			addEventListener(TCursorEvent.CURSOR_OVER, handleCursor);
 			addEventListener(TCursorEvent.CURSOR_UP, handleCursor);
@@ -104,7 +115,7 @@
 						highlight(true);
 						
 						if(tapable) {
-							initTapable(e.type);
+							initTapable(e.type,e.cursorInfo);
 						}
 					}
 					
@@ -125,8 +136,8 @@
 						if (movable && softRelease && Math.abs(e.deltaX + e.deltaY) > .8) {
 							
 							var globalCoords:Point = parent.localToGlobal(new Point(this.x, this.y));
-							globalCoords.x += e.deltaX * 10;
-							globalCoords.y += e.deltaY * 10;
+							globalCoords.x += e.deltaX * softReleaseFactor;
+							globalCoords.y += e.deltaY * softReleaseFactor;
 							
 							var localTarget:Point = parent.globalToLocal(globalCoords);
 							
@@ -135,7 +146,7 @@
 							TweenLite.to(this, .7, { x:localTarget.x, y:localTarget.y, ease:Strong.easeOut } );
 							
 						}else if(tapable){
-							initTapable(e.type);
+							initTapable(e.type,e.cursorInfo);
 						}
 						
 					}else if (_numCursors == 1) {
@@ -216,11 +227,11 @@
 		}
 		
 		
-		private function initTapable(eventType:String):void
+		private function initTapable(eventType:String,cursorInfo:TCursorInfo):void
 		{
 			if(eventType == TCursorEvent.CURSOR_OVER){
 				
-				tapTimer = new Timer(150, 1);
+				tapTimer = new Timer(tapTolerance, 1);
 				tapTimer.start();
 				tapTimer.addEventListener(TimerEvent.TIMER_COMPLETE, notap);
 				
@@ -228,18 +239,20 @@
 				
 				//trace("tap !");
 				
-				dispatchEvent(new TouchEvent(TouchEvent.TAP,true));
+				var tapPoint:Point = new Point(cursorInfo.cursorX, cursorInfo.cursorY);
+				
+				dispatchEvent(new TouchEvent(TouchEvent.TAP,tapPoint,true));
 				
 				if (doubleTapTimer == null) {
 					
-					doubleTapTimer = new Timer(300, 1);
+					doubleTapTimer = new Timer(doubleTapTolerance, 1);
 					doubleTapTimer.start();
 					doubleTapTimer.addEventListener(TimerEvent.TIMER_COMPLETE, notap);
 					
 				}else {
 					
 					//trace("double tap !");
-					dispatchEvent(new TouchEvent(TouchEvent.DOUBLE_TAP, true));
+					dispatchEvent(new TouchEvent(TouchEvent.DOUBLE_TAP,tapPoint, true));
 					doubleTapTimer = null;
 				}
 				
@@ -275,6 +288,13 @@
 							
 			//Initialisation of init* params
 			var baseCursor:TCursorInfo = _cursorArray[0] as TCursorInfo;
+			
+			if (baseCursor == null) {
+				_numCursors = 0;
+				cursorArray = new Array();
+				return;
+			}
+			
 			var basePoint:Point = parent.globalToLocal(new Point(baseCursor.cursorX, baseCursor.cursorY ));
 			initDiffX = basePoint.x - this.x;
 			initDiffY = basePoint.y - this.y;
@@ -544,6 +564,7 @@
 				value = maxScale;
 			}
 			
+			
 			super.scaleX = value;
 			
 			
@@ -574,6 +595,20 @@
 		public function set softRelease(value:Boolean):void 
 		{
 			_softRelease = value;
+		}
+		
+		public function get minScale():Number { return _minScale; }
+		
+		public function set minScale(value:Number):void 
+		{
+			_minScale = value;
+		}
+		
+		public function get maxScale():Number { return _maxScale; }
+		
+		public function set maxScale(value:Number):void 
+		{
+			_maxScale = value;
 		}
 		
 	}
