@@ -18,6 +18,7 @@
 		function get cursorArray():Array;
 		function set cursorArray(value:Array):void;
 		
+		function get dispatchWhileOut():Boolean;
 		function dispatchEvent(evt:Event):Boolean;
 	}
 

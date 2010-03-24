@@ -15,7 +15,7 @@
 		
 		public var tapPoint:Point;
 		
-		public function TouchEvent(type:String,tapPoint:Point, bubbles:Boolean=false, cancelable:Boolean=false) 
+		public function TouchEvent(type:String,tapPoint:Point, bubbles:Boolean=true, cancelable:Boolean=false) 
 		{ 
 			super(type, bubbles, cancelable);
 			this.tapPoint = tapPoint;

@@ -6,8 +6,12 @@
 	import flash.display.Sprite;
 	import flash.display.MovieClip;
 	import flash.display.Stage;
+	import flash.display.StageAlign;
+	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.ui.Keyboard;
 	import gs.plugins.ShortRotationPlugin;
 	import gs.plugins.TransformAroundPointPlugin;
 	
@@ -25,8 +29,10 @@
 	public class TManager extends Sprite
 	{
 		
+		private var host:String;
+		private var port:int;
 		
-		private var targetScreen:int;
+		private var targetScreen:Screen;
 		
 		private var screenW:int;
 		private var screenH:int;
@@ -59,7 +65,7 @@
 		private var container:Sprite;
 		
 		
-		public function TManager(targetScreen:int = 0){
+		public function TManager(){
 			
 			//for tweening
 			OverwriteManager.init();
@@ -71,8 +77,7 @@
 			
 			instance = this;
 			
-			this.targetScreen = targetScreen;
-			//TCursor.mode = "keyboard";
+			
 			
 			tParser = new TParser();
 			tParser.addEventListener(TParserEvent.NEW_OBJECT, addObject);
@@ -95,6 +100,7 @@
 			addChild(container);
 			
 			addEventListener(Event.ADDED_TO_STAGE, init);
+			
 		}
 		
 		
@@ -102,22 +108,29 @@
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
-			//screenW = stage.stageWidth;
-			//screenH = stage.stageHeight;
+			//VERY IMPORTANT
+			stage.align = StageAlign.TOP_LEFT;
+			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
-			screenW = int(Screen.screens[targetScreen].bounds.width);
-			screenH = int(Screen.screens[targetScreen].bounds.height);
+			screenW = stage.stageWidth;
+			screenH = stage.stageHeight;
 			
-			decalageX = int(Screen.screens[targetScreen].bounds.x) - stage.nativeWindow.x;
-			decalageY = int(Screen.screens[targetScreen].bounds.y)  - stage.nativeWindow.y;
-			//trace(screenW,screenH);
+			trace("tManager initialized, width :", screenW, "height :", screenH);
 			
+			//decalageX = -stage.nativeWindow.x;
+			//decalateY = 
+			
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, reConnect);
 		}
 		
 		
 		
 		
 		public function connect(host:String = "127.0.0.1",port:int = 3000){
+			
+			
+			this.host = host;
+			this.port = port;
 			
 			tConnector = new TConnector();
 			tConnector.connect(host,port);
@@ -130,18 +143,31 @@
 		}
 		
 		
+		public function reConnect(e:KeyboardEvent):void
+		{
+			if (e.altKey && e.ctrlKey && e.keyCode == Keyboard.C) {
+				tConnector = new TConnector();
+				tConnector.connect(host,port);
+
+				tConnector.addEventListener(TConnectorEvent.CONNECTED,handleConnected);
+				tConnector.addEventListener(TConnectorEvent.DISCONNECTED,handleDisconnected);
+				tConnector.addEventListener(TConnectorEvent.CONNECTION_ERROR,handleError);
+				tConnector.addEventListener(TConnectorEvent.MESSAGE_RECEIVED,sendMessageToParser);
+			}
+		}
+		
 		
 		
 		private function handleConnected(e:TConnectorEvent){
-			//controlPanel.statusOutput.text = "Connected";
+			trace("Connected");
 		}
 		
 		private function handleDisconnected(e:TConnectorEvent){
-			//controlPanel.statusOutput.text = "Disconnected";
+			//trace("Disconnected");
 		}
 		
 		private function handleError(e:TConnectorEvent){
-			//controlPanel.statusOutput.text = "Connection Error";
+			//trace("Connection Error");
 		}
 		
 		
@@ -149,7 +175,7 @@
 		private function sendMessageToParser(e:TConnectorEvent){
 			
 			//Debug
-			//incomingOutput.text = e.message;
+			//trace("incoming :\n", e.message);
 			
 			tParser.parseXMLData(e.message);
 			
@@ -190,10 +216,10 @@
 		
 		private function updateCursor(e:TParserEvent){
 			
-			//trace("update Cursor : "+e.cursorID, cursorList[e.cursorID]);
+			//trace("update Cursor : " + e.cursorID, e.newX, "->", ((e.newX * factorX + 1) % 1) * screenW, ",", e.newY, "->", e.newY * screenH);
 			
 			if(cursorList[e.cursorID] != undefined){
-				cursorList[e.cursorID].relatedTCursor.update(((e.newX * factorX + 1) % 1) * screenW + decalageX, ((e.newY * factorY + 1) % 1) * screenH + decalageY);
+				cursorList[e.cursorID].relatedTCursor.update(((e.newX * factorX + 1) % 1) * screenW, ((e.newY * factorY + 1) % 1) * screenH);
 			}
 			
 			
@@ -202,13 +228,50 @@
 		
 		//MANAGEMENT OF TOUCH OBJECTS
 		
-		public function registerObject(object:ITObject):int {
-			
-			objectList.unshift(object);
+		public function registerObject(object:ITObject, priority:int = 0):int
+		{
+			if(objectList.indexOf(object) == -1){
+				objectList.splice(priority,0, object);
+				//trace("register : ", objectList.length, "items");
+				
+			}else {
+				//trace("register : object already exists");
+				setPriority(object, priority);
+			}
 			
 			return objectList.length;
 		}
 		
+		public function unregisterObject(object:ITObject):Boolean {
+			if (objectList.indexOf(object) == -1) {
+				//trace("unregister : object isn't registered");
+				return false;
+			}
+			
+			objectList.splice(objectList.indexOf(object), 1);
+			//trace("unregister : ", objectList.length, "items");
+			return true;
+		}
+		
+		public function setPriority(object:ITObject, priority:int):Boolean
+		{
+			
+			if (priority > objectList.indexOf(object)) {
+				priority -= 1;
+			}
+			
+			if (unregisterObject(object)) {
+				registerObject(object,priority);
+				return true;
+			}
+			
+			return false;
+		}
+		
+		public function getPriority(object:ITObject):int
+		{
+			return objectList.indexOf(object);
+		}
 		
 		
 		

@@ -21,6 +21,7 @@
 		public static const CURSOR_IN:String = "cursorIn";	//Dispatched when finger  was out of his touchable object and moves inside this object;
 		public static const CURSOR_OUT:String = "cursorOut";	//Dispatched when finger's still on the table but out of his touchable object;
 		public static const CURSOR_MOVE:String = "cursorMove";	//Dispatched when finger's on his touchable object and moves
+		public static const CURSOR_QUIT:String = "cursorQuit";	//Dispatched when finger's outside an element and property liveTouch of cursor is set to true
 
 		private var objectOver:ITObject;
 		private var _deltaX:Number;
