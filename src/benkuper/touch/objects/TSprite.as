@@ -48,8 +48,11 @@
 		
 		private var _softMove:Boolean;
 		private var _softRelease:Boolean;
+		private var _softReleaseFactor:Number;
 		
-		private var softReleaseFactor:Number;
+		private var _dispatchWhileOut:Boolean;
+		
+		
 		
 		private var tapTolerance:Number;
 		private var doubleTapTolerance:Number;
@@ -609,6 +612,20 @@
 		public function set maxScale(value:Number):void 
 		{
 			_maxScale = value;
+		}
+		
+		public function get dispatchWhileOut():Boolean { return _dispatchWhileOut; }
+		
+		public function set dispatchWhileOut(value:Boolean):void 
+		{
+			_dispatchWhileOut = value;
+		}
+		
+		public function get softReleaseFactor():Number { return _softReleaseFactor; }
+		
+		public function set softReleaseFactor(value:Number):void 
+		{
+			_softReleaseFactor = value;
 		}
 		
 	}

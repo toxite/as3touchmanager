@@ -32,10 +32,10 @@
 		
 		private var cursorInfo:TCursorInfo;
 		
-		private var dispatchMoveWhileOut:Boolean;
 		
 		private var deltaX:Number;
 		private var deltaY:Number;
+		
 		
 		
 		public function TCursor(cID:int){
@@ -48,9 +48,6 @@
 			graphics.drawCircle(0, 0, 5);
 			graphics.endFill();
 			
-			
-			dispatchMoveWhileOut = true;
-			
 		}
 		
 		
@@ -60,6 +57,7 @@
 			//trace("TCursor update,mode="+cursorMode);
 			
 			
+				
 				
 			 
 			if (this.x == 0) {
@@ -81,13 +79,13 @@
 						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_OUT, cursorInfo , targetObject));
 					}
 					
-					if(dispatchMoveWhileOut){
-						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject, deltaX, deltaY));
+					//targetObject = null;
+					
+					if (targetObject.dispatchWhileOut) {
+						targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));
 					}
 					
 				}else {
-					
-					
 					
 					if (cursorInfo.state == "out") {
 						cursorInfo.state = "in";
@@ -95,7 +93,8 @@
 					}
 					
 					
-					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));				}
+					targetObject.dispatchEvent(new TCursorEvent(TCursorEvent.CURSOR_MOVE, cursorInfo, targetObject,deltaX,deltaY));
+				}
 				
 			}
 			
